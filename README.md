@@ -1,204 +1,160 @@
-# BlenderMCP - Blender Model Context Protocol Integration
+# HoudiniMCP - Houdini Model Context Protocol Integration
 
-BlenderMCP connects Blender to Claude AI through the Model Context Protocol (MCP), allowing Claude to directly interact with and control Blender. This integration enables prompt assisted 3D modeling, scene creation, and manipulation.
+HoudiniMCP kết nối Houdini với Claude AI thông qua Model Context Protocol (MCP), cho phép Claude điều khiển trực tiếp và tương tác với Houdini. Tích hợp này giúp bạn thực hiện các lệnh bằng văn bản để tạo mô phỏng, dựng cảnh và thao tác với Houdini.
 
-[Full tutorial](https://www.youtube.com/watch?v=lCyQ717DuzQ)
+### Tham gia cộng đồng
 
-### Join the Community
+Đóng góp ý kiến, lấy cảm hứng và phát triển dựa trên MCP: [Discord](https://discord.gg/xcJxvuW6)
 
-Give feedback, get inspired, and build on top of the MCP: [Discord](https://discord.gg/xcJxvuW6)
+## Tính năng
 
-### Supporters
+- **Giao tiếp hai chiều**: Kết nối Claude AI với Houdini thông qua socket server
+- **Thao tác đối tượng**: Tạo, chỉnh sửa và xóa các đối tượng 3D trong Houdini
+- **Điều khiển mô phỏng**: Tạo và điều chỉnh các mô phỏng nước và lửa
+- **Kiểm tra cảnh**: Lấy thông tin chi tiết về cảnh hiện tại trong Houdini
+- **Thực thi mã**: Chạy mã Python tùy ý trong Houdini từ Claude
 
-**Top supporters:**
+## Thành phần
 
-[CodeRabbit](https://www.coderabbit.ai/)
+Hệ thống bao gồm hai thành phần chính:
 
-**All supporters:**
+1. **Houdini Plugin (`houdini_plugin.py`)**: Plugin tạo socket server trong Houdini để nhận và thực thi lệnh
+2. **MCP Server (`src/houdini_mcp/server.py`)**: Server Python triển khai Model Context Protocol và kết nối với Houdini plugin
 
-[Support this project](https://github.com/sponsors/ahujasid)
+## Cài đặt
 
-## Release notes (1.1.0)
+### Yêu cầu
 
-- Added support for Poly Haven assets through their API
-- Added support to prompt 3D models using Hyper3D Rodin
-- For newcomers, you can go straight to Installation. For existing users, see the points below
-- Download the latest addon.py file and replace the older one, then add it to Blender
-- Delete the MCP server from Claude and add it back again, and you should be good to go!
-
-## Features
-
-- **Two-way communication**: Connect Claude AI to Blender through a socket-based server
-- **Object manipulation**: Create, modify, and delete 3D objects in Blender
-- **Material control**: Apply and modify materials and colors
-- **Scene inspection**: Get detailed information about the current Blender scene
-- **Code execution**: Run arbitrary Python code in Blender from Claude
-
-## Components
-
-The system consists of two main components:
-
-1. **Blender Addon (`addon.py`)**: A Blender addon that creates a socket server within Blender to receive and execute commands
-2. **MCP Server (`src/blender_mcp/server.py`)**: A Python server that implements the Model Context Protocol and connects to the Blender addon
-
-## Installation
-
-
-### Prerequisites
-
-- Blender 3.0 or newer
-- Python 3.10 or newer
+- Houdini 19.5 hoặc mới hơn
+- Python 3.10 hoặc mới hơn
 - uv package manager: 
 
-**If you're on Mac, please install uv as**
+**Nếu bạn đang dùng Mac, cài đặt uv bằng lệnh**
 ```bash
 brew install uv
 ```
-**On Windows**
+**Trên Windows**
 ```bash
 powershell -c "irm https://astral.sh/uv/install.ps1 | iex" 
 ```
-and then
+sau đó
 ```bash
-set Path=C:\Users\nntra\.local\bin;%Path%
+set Path=C:\Users\<username>\.local\bin;%Path%
 ```
 
-Otherwise installation instructions are on their website: [Install uv](https://docs.astral.sh/uv/getting-started/installation/)
+**⚠️ Không tiếp tục nếu chưa cài đặt UV**
 
-**⚠️ Do not proceed before installing UV**
+### Cài đặt plugin cho Houdini
 
+1. Tải file `houdini_plugin.py`
+2. Copy file này vào thư mục scripts của Houdini:
+   - Windows: `C:\Users\<username>\Documents\houdini<version>\scripts\`
+   - Mac: `/Users/<username>/Library/Preferences/houdini/<version>/scripts/`
+   - Linux: `/home/<username>/houdini<version>/scripts/`
+3. Mở Houdini, nhấn Alt+P để mở Python Shell
+4. Chạy các lệnh sau:
+   ```python
+   import houdini_plugin
+   houdini_plugin.show_dialog()
+   ```
 
-### Claude for Desktop Integration
+### Tích hợp với Claude Desktop
 
-[Watch the setup instruction video](https://www.youtube.com/watch?v=neoK_WMq92g) (Assuming you have already installed uv)
-
-Go to Claude > Settings > Developer > Edit Config > claude_desktop_config.json to include the following:
+Vào Claude > Settings > Developer > Edit Config > claude_desktop_config.json và thêm đoạn sau:
 
 ```json
 {
     "mcpServers": {
-        "blender": {
+        "houdini": {
             "command": "uvx",
             "args": [
-                "blender-mcp"
+                "houdini-mcp"
             ]
         }
     }
 }
 ```
 
-### Cursor integration
+### Tích hợp với Cursor
 
-Run blender-mcp without installing it permanently through uvx. Go to Cursor Settings > MCP and paste this as a command.
+Vào Cursor Settings > MCP và dán lệnh sau:
 
 ```bash
-uvx blender-mcp
+uvx houdini-mcp
 ```
 
-For Windows users, go to Settings > MCP > Add Server, add a new server with the following settings:
+Đối với người dùng Windows, vào Settings > MCP > Add Server, thêm server mới với cài đặt sau:
 
 ```json
 {
     "mcpServers": {
-        "blender": {
+        "houdini": {
             "command": "cmd",
             "args": [
                 "/c",
                 "uvx",
-                "blender-mcp"
+                "houdini-mcp"
             ]
         }
     }
 }
 ```
 
+**⚠️ Chỉ chạy một instance của MCP server (hoặc trên Cursor hoặc Claude Desktop), không chạy cả hai**
 
-[Cursor setup video](https://www.youtube.com/watch?v=wgWsJshecac)
+## Sử dụng
 
-**⚠️ Only run one instance of the MCP server (either on Cursor or Claude Desktop), not both**
+### Bắt đầu kết nối
 
-### Installing the Blender Addon
+1. Trong Houdini, mở Python Shell (Alt+P)
+2. Chạy lệnh `import houdini_plugin` và `houdini_plugin.show_dialog()`
+3. Kết nối đến Claude
+4. Đảm bảo MCP server đang chạy
 
-1. Download the `addon.py` file from this repo
-1. Open Blender
-2. Go to Edit > Preferences > Add-ons
-3. Click "Install..." and select the `addon.py` file
-4. Enable the addon by checking the box next to "Interface: Blender MCP"
+### Sử dụng với Claude
 
+Khi đã cấu hình xong file config cho Claude, và plugin đang chạy trong Houdini, bạn sẽ thấy biểu tượng công cụ cho HoudiniMCP.
 
-## Usage
+#### Khả năng
 
-### Starting the Connection
-![BlenderMCP in the sidebar](assets/addon-instructions.png)
+- Lấy thông tin về cảnh và đối tượng
+- Tạo, xóa và chỉnh sửa các đối tượng
+- Tạo mô phỏng nước và lửa
+- Thực thi mã Python bất kỳ trong Houdini
 
-1. In Blender, go to the 3D View sidebar (press N if not visible)
-2. Find the "BlenderMCP" tab
-3. Turn on the Poly Haven checkbox if you want assets from their API (optional)
-4. Click "Connect to Claude"
-5. Make sure the MCP server is running in your terminal
+### Ví dụ các lệnh
 
-### Using with Claude
+Dưới đây là một số ví dụ về những gì bạn có thể yêu cầu Claude thực hiện:
 
-Once the config file has been set on Claude, and the addon is running on Blender, you will see a hammer icon with tools for the Blender MCP.
+- "Tạo mô phỏng nước với nguồn hình hộp và một quả cầu va chạm"
+- "Tạo mô phỏng lửa với nguồn hình cầu, nhiệt độ 1.5, lượng nhiên liệu 1.0 và lực gió theo hướng X"
+- "Tạo một đối tượng hình cầu và đặt nó phía trên hình hộp"
+- "Hướng camera vào cảnh"
 
-![BlenderMCP in the sidebar](assets/hammer-icon.png)
+## Xử lý sự cố
 
-#### Capabilities
+- **Vấn đề kết nối**: Đảm bảo Houdini plugin server đang chạy và MCP server được cấu hình trên Claude
+- **Lỗi timeout**: Thử đơn giản hóa yêu cầu hoặc chia nhỏ thành các bước
+- **Kết nối không ổn định**: Khởi động lại cả Claude và Houdini server
 
-- Get scene and object information 
-- Create, delete and modify shapes
-- Apply or create materials for objects
-- Execute any Python code in Blender
-- Download the right models, assets and HDRIs through [Poly Haven](https://polyhaven.com/)
-- AI generated 3D models through [Hyper3D Rodin](https://hyper3d.ai/)
+## Chi tiết kỹ thuật
 
+### Giao thức truyền thông
 
-### Example Commands
+Hệ thống sử dụng giao thức dựa trên JSON qua TCP sockets:
 
-Here are some examples of what you can ask Claude to do:
+- **Lệnh** được gửi dưới dạng đối tượng JSON với `type` và `params` tùy chọn
+- **Phản hồi** là đối tượng JSON với `status` và `result` hoặc `message`
 
-- "Create a low poly scene in a dungeon, with a dragon guarding a pot of gold" [Demo](https://www.youtube.com/watch?v=DqgKuLYUv00)
-- "Create a beach vibe using HDRIs, textures, and models like rocks and vegetation from Poly Haven" [Demo](https://www.youtube.com/watch?v=I29rn92gkC4)
-- Give a reference image, and create a Blender scene out of it [Demo](https://www.youtube.com/watch?v=FDRb03XPiRo)
-- "Generate a 3D model of a garden gnome through Hyper3D"
-- "Get information about the current scene, and make a threejs sketch from it" [Demo](https://www.youtube.com/watch?v=jxbNI5L7AH8)
-- "Make this car red and metallic" 
-- "Create a sphere and place it above the cube"
-- "Make the lighting like a studio"
-- "Point the camera at the scene, and make it isometric"
+## Giới hạn và cân nhắc bảo mật
 
-## Hyper3D integration
+- Công cụ `execute_houdini_code` cho phép chạy mã Python tùy ý trong Houdini, điều này rất mạnh mẽ nhưng có thể nguy hiểm. Sử dụng cẩn thận trong môi trường sản xuất. LUÔN lưu công việc của bạn trước khi sử dụng.
+- Các thao tác phức tạp có thể cần được chia thành các bước nhỏ hơn
 
-Hyper3D's free trial key allows you to generate a limited number of models per day. If the daily limit is reached, you can wait for the next day's reset or obtain your own key from hyper3d.ai and fal.ai.
+## Đóng góp
 
-## Troubleshooting
+Đóng góp luôn được chào đón! Vui lòng tạo Pull Request.
 
-- **Connection issues**: Make sure the Blender addon server is running, and the MCP server is configured on Claude, DO NOT run the uvx command in the terminal. Sometimes, the first command won't go through but after that it starts working.
-- **Timeout errors**: Try simplifying your requests or breaking them into smaller steps
-- **Poly Haven integration**: Claude is sometimes erratic with its behaviour
-- **Have you tried turning it off and on again?**: If you're still having connection errors, try restarting both Claude and the Blender server
+## Tuyên bố từ chối trách nhiệm
 
-
-## Technical Details
-
-### Communication Protocol
-
-The system uses a simple JSON-based protocol over TCP sockets:
-
-- **Commands** are sent as JSON objects with a `type` and optional `params`
-- **Responses** are JSON objects with a `status` and `result` or `message`
-
-## Limitations & Security Considerations
-
-- The `execute_blender_code` tool allows running arbitrary Python code in Blender, which can be powerful but potentially dangerous. Use with caution in production environments. ALWAYS save your work before using it.
-- Poly Haven requires downloading models, textures, and HDRI images. If you do not want to use it, please turn it off in the checkbox in Blender. 
-- Complex operations might need to be broken down into smaller steps
-
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## Disclaimer
-
-This is a third-party integration and not made by Blender. Made by [Siddharth](https://x.com/sidahuj)
+Đây là tích hợp của bên thứ ba và không phải do SideFX (công ty phát triển Houdini) tạo ra.
