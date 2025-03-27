@@ -1,0 +1,407 @@
+{
+  "schema_version": "1.0",
+  "commands": {
+    "list_available_commands": {
+      "description": "List all available commands supported by the Houdini MCP server",
+      "params": {},
+      "required_params": [],
+      "example": {
+        "type": "list_available_commands",
+        "params": {}
+      },
+      "response_example": {
+        "status": "success",
+        "commands": ["create_node", "connect_nodes", "set_param", "get_scene_info", "get_object_info", "create_fluid_sim", "create_pyro_sim", "run_simulation", "execute_houdini_code", "list_available_commands"]
+      }
+    },
+    "create_node": {
+      "description": "Create a new node in Houdini",
+      "params": {
+        "parent_path": {
+          "type": "string",
+          "description": "Path to the parent node where the new node will be created",
+          "default": "/obj"
+        },
+        "node_type": {
+          "type": "string",
+          "description": "Type of node to create (e.g., 'geo', 'box', 'sphere')"
+        },
+        "node_name": {
+          "type": "string",
+          "description": "Optional name for the new node. If not provided, Houdini will generate a name",
+          "default": null
+        }
+      },
+      "required_params": ["node_type"],
+      "example": {
+        "type": "create_node",
+        "params": {
+          "parent_path": "/obj",
+          "node_type": "geo",
+          "node_name": "my_geometry"
+        }
+      },
+      "response_example": {
+        "status": "success",
+        "message": "Node created: /obj/my_geometry",
+        "node_path": "/obj/my_geometry"
+      }
+    },
+    "connect_nodes": {
+      "description": "Connect two nodes together",
+      "params": {
+        "from_path": {
+          "type": "string",
+          "description": "Path to the source node"
+        },
+        "to_path": {
+          "type": "string",
+          "description": "Path to the destination node"
+        },
+        "input_index": {
+          "type": "integer",
+          "description": "Input index on the destination node to connect to",
+          "default": 0
+        }
+      },
+      "required_params": ["from_path", "to_path"],
+      "example": {
+        "type": "connect_nodes",
+        "params": {
+          "from_path": "/obj/geo1",
+          "to_path": "/obj/geo2",
+          "input_index": 0
+        }
+      },
+      "response_example": {
+        "status": "success",
+        "message": "Connected /obj/geo1 to /obj/geo2 at input 0"
+      }
+    },
+    "set_param": {
+      "description": "Set a parameter value on a node",
+      "params": {
+        "node_path": {
+          "type": "string",
+          "description": "Path to the node"
+        },
+        "param_name": {
+          "type": "string",
+          "description": "Name of the parameter to set"
+        },
+        "param_value": {
+          "type": ["number", "string", "boolean", "array"],
+          "description": "Value to set for the parameter. For vector parameters, use an array of values."
+        }
+      },
+      "required_params": ["node_path", "param_name", "param_value"],
+      "example": {
+        "type": "set_param",
+        "params": {
+          "node_path": "/obj/geo1",
+          "param_name": "tx",
+          "param_value": 5.0
+        }
+      },
+      "response_example": {
+        "status": "success",
+        "message": "Parameter tx set to 5.0 on /obj/geo1"
+      }
+    },
+    "get_scene_info": {
+      "description": "Get information about the current Houdini scene",
+      "params": {},
+      "required_params": [],
+      "example": {
+        "type": "get_scene_info",
+        "params": {}
+      },
+      "response_example": {
+        "hip_file": "/path/to/file.hip",
+        "fps": 24.0,
+        "current_frame": 1.0,
+        "start_frame": 1.0,
+        "end_frame": 240.0,
+        "top_nodes": [
+          {
+            "context": "obj",
+            "nodes": ["geo1", "cam1"]
+          }
+        ]
+      }
+    },
+    "get_object_info": {
+      "description": "Get detailed information about a specific node",
+      "params": {
+        "object_name": {
+          "type": "string",
+          "description": "Path to the node to get information about"
+        }
+      },
+      "required_params": ["object_name"],
+      "example": {
+        "type": "get_object_info",
+        "params": {
+          "object_name": "/obj/geo1"
+        }
+      },
+      "response_example": {
+        "node_type": "geo",
+        "node_path": "/obj/geo1",
+        "parent": "/obj",
+        "children": ["/obj/geo1/box1"],
+        "parameters": {
+          "tx": 0.0,
+          "ty": 0.0,
+          "tz": 0.0
+        },
+        "inputs": [],
+        "outputs": []
+      }
+    },
+    "create_fluid_sim": {
+      "description": "Create a FLIP fluid simulation with specified parameters",
+      "params": {
+        "container_size": {
+          "type": "array",
+          "description": "Size of the simulation container [x, y, z]",
+          "default": [10, 10, 10]
+        },
+        "source_type": {
+          "type": "string",
+          "description": "Type of fluid source ('box' or 'sphere')",
+          "default": "box"
+        },
+        "source_position": {
+          "type": "array",
+          "description": "Position of the fluid source [x, y, z]",
+          "default": [0, 5, 0]
+        },
+        "source_size": {
+          "type": ["array", "number"],
+          "description": "Size of the fluid source. For box: [x, y, z], for sphere: radius",
+          "default": [2, 2, 2]
+        },
+        "viscosity": {
+          "type": "number",
+          "description": "Fluid viscosity",
+          "default": 0.01
+        },
+        "surface_tension": {
+          "type": "number",
+          "description": "Fluid surface tension",
+          "default": 0.01
+        },
+        "resolution": {
+          "type": "number",
+          "description": "Simulation resolution",
+          "default": 100
+        },
+        "frame_range": {
+          "type": "array",
+          "description": "Start and end frame [start, end]",
+          "default": [1, 100]
+        },
+        "collision_objects": {
+          "type": "array",
+          "description": "List of collision objects",
+          "default": [],
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Type of collision object ('box' or 'sphere')",
+                "default": "sphere"
+              },
+              "position": {
+                "type": "array",
+                "description": "Position of the collision object [x, y, z]",
+                "default": [0, 0, 0]
+              },
+              "size": {
+                "type": ["array", "number"],
+                "description": "Size of the collision object. For box: [x, y, z], for sphere: radius",
+                "default": 1.0
+              }
+            }
+          }
+        }
+      },
+      "required_params": [],
+      "example": {
+        "type": "create_fluid_sim",
+        "params": {
+          "container_size": [10, 10, 10],
+          "source_type": "box",
+          "source_position": [0, 5, 0],
+          "source_size": [2, 2, 2],
+          "viscosity": 0.01,
+          "collision_objects": [
+            {
+              "type": "sphere",
+              "position": [0, 0, 0],
+              "size": 2.0
+            }
+          ]
+        }
+      },
+      "response_example": {
+        "status": "success",
+        "message": "Fluid simulation created successfully",
+        "node_path": "/obj/fluid_sim"
+      }
+    },
+    "create_pyro_sim": {
+      "description": "Create a Pyro simulation (fire/smoke) with specified parameters",
+      "params": {
+        "source_type": {
+          "type": "string",
+          "description": "Type of source ('box' or 'sphere')",
+          "default": "sphere"
+        },
+        "source_position": {
+          "type": "array",
+          "description": "Position of the source [x, y, z]",
+          "default": [0, 0, 0]
+        },
+        "source_size": {
+          "type": ["array", "number"],
+          "description": "Size of the source. For box: [x, y, z], for sphere: radius",
+          "default": 1.0
+        },
+        "temperature": {
+          "type": "number",
+          "description": "Initial temperature",
+          "default": 1.0
+        },
+        "fuel": {
+          "type": "number",
+          "description": "Fuel amount",
+          "default": 1.0
+        },
+        "burn_rate": {
+          "type": "number",
+          "description": "Burn rate",
+          "default": 0.75
+        },
+        "expansion": {
+          "type": "number",
+          "description": "Expansion factor",
+          "default": 1.0
+        },
+        "cooling_rate": {
+          "type": "number",
+          "description": "Cooling rate",
+          "default": 0.25
+        },
+        "turbulence": {
+          "type": "number",
+          "description": "Turbulence amount",
+          "default": 0.5
+        },
+        "wind_direction": {
+          "type": "array",
+          "description": "Wind direction vector [x, y, z]",
+          "default": [0, 1, 0]
+        },
+        "wind_speed": {
+          "type": "number",
+          "description": "Wind speed",
+          "default": 0.0
+        },
+        "frame_range": {
+          "type": "array",
+          "description": "Start and end frame [start, end]",
+          "default": [1, 100]
+        }
+      },
+      "required_params": [],
+      "example": {
+        "type": "create_pyro_sim",
+        "params": {
+          "source_type": "sphere",
+          "source_position": [0, 0, 0],
+          "source_size": 1.0,
+          "temperature": 1.0,
+          "fuel": 1.0,
+          "wind_direction": [0, 1, 0],
+          "wind_speed": 0.5
+        }
+      },
+      "response_example": {
+        "status": "success",
+        "message": "Pyro simulation created successfully",
+        "node_path": "/obj/pyro_sim"
+      }
+    },
+    "run_simulation": {
+      "description": "Run a simulation for specified frames",
+      "params": {
+        "node_path": {
+          "type": "string",
+          "description": "Path to the simulation node"
+        },
+        "start_frame": {
+          "type": "number",
+          "description": "Start frame",
+          "default": 1
+        },
+        "end_frame": {
+          "type": "number",
+          "description": "End frame",
+          "default": 100
+        },
+        "save_to_disk": {
+          "type": "boolean",
+          "description": "Whether to save the simulation to disk",
+          "default": false
+        },
+        "output_path": {
+          "type": "string",
+          "description": "Path to save the simulation results (if save_to_disk is true)",
+          "default": ""
+        }
+      },
+      "required_params": ["node_path"],
+      "example": {
+        "type": "run_simulation",
+        "params": {
+          "node_path": "/obj/pyro_sim/dopnet1",
+          "start_frame": 1,
+          "end_frame": 100,
+          "save_to_disk": true,
+          "output_path": "$HIP/sim/pyro_sim.$F4.bgeo.sc"
+        }
+      },
+      "response_example": {
+        "status": "success",
+        "message": "Simulation set up to run from frame 1 to 100",
+        "note": "To run the simulation, press play in the timeline or use playbar controls"
+      }
+    },
+    "execute_houdini_code": {
+      "description": "Execute arbitrary Python code in Houdini",
+      "params": {
+        "code": {
+          "type": "string",
+          "description": "Python code to execute in Houdini"
+        }
+      },
+      "required_params": ["code"],
+      "example": {
+        "type": "execute_houdini_code",
+        "params": {
+          "code": "node = hou.node('/obj')\nprint(node.children())"
+        }
+      },
+      "response_example": {
+        "status": "success",
+        "message": "Code executed successfully",
+        "variables": {
+          "node": "<hou.Node at /obj>"
+        }
+      }
+    }
+  }
+} 

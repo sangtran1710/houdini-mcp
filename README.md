@@ -1,160 +1,277 @@
-# HoudiniMCP - Houdini Model Context Protocol Integration
+# Houdini-MCP
 
-HoudiniMCP kết nối Houdini với Claude AI thông qua Model Context Protocol (MCP), cho phép Claude điều khiển trực tiếp và tương tác với Houdini. Tích hợp này giúp bạn thực hiện các lệnh bằng văn bản để tạo mô phỏng, dựng cảnh và thao tác với Houdini.
+A bridge between Houdini and Claude AI through the Model Context Protocol (MCP). This project allows you to control Houdini and create simulations using natural language commands from Claude.
 
-### Tham gia cộng đồng
+## 📖 Project Overview
 
-Đóng góp ý kiến, lấy cảm hứng và phát triển dựa trên MCP: [Discord](https://discord.gg/xcJxvuW6)
+Houdini-MCP is a Python-based integration that enables seamless communication between Claude AI and SideFX Houdini. Through the Model Context Protocol (MCP), Claude can:
 
-## Tính năng
+- Create and manipulate Houdini nodes
+- Configure parameters and attributes
+- Generate complex simulations
+- Execute Houdini Python code
+- Query scene information
 
-- **Giao tiếp hai chiều**: Kết nối Claude AI với Houdini thông qua socket server
-- **Thao tác đối tượng**: Tạo, chỉnh sửa và xóa các đối tượng 3D trong Houdini
-- **Điều khiển mô phỏng**: Tạo và điều chỉnh các mô phỏng nước và lửa
-- **Kiểm tra cảnh**: Lấy thông tin chi tiết về cảnh hiện tại trong Houdini
-- **Thực thi mã**: Chạy mã Python tùy ý trong Houdini từ Claude
+This bridge unlocks the power of natural language control over Houdini's procedural workflow, allowing artists and technical directors to leverage AI assistance in their pipeline.
 
-## Thành phần
+## 🧱 Features
 
-Hệ thống bao gồm hai thành phần chính:
+- **Procedural Houdini Control**: Control Houdini via structured JSON commands
+- **Socket Server Integration**: Direct socket connection on port 8095 (configurable)
+- **REST API Adapter**: HTTP interface on port 5000 (configurable) 
+- **Modular Command Architecture**: Easily extensible command system
+- **Custom Simulation Generation**: Create FLIP fluid and Pyro fire/smoke simulations
+- **Secure Local-Only REST Interface**: Restricted to localhost for security
+- **CLI Launcher**: Multiple startup options via command line interface
+- **Python Package Ready**: Structured as a proper Python package with pyproject.toml
+- **Type Annotations**: Comprehensive type hints for better code maintainability
+- **Unit Tests**: Comprehensive test suite for core functionality
 
-1. **Houdini Plugin (`houdini_plugin.py`)**: Plugin tạo socket server trong Houdini để nhận và thực thi lệnh
-2. **MCP Server (`src/houdini_mcp/server.py`)**: Server Python triển khai Model Context Protocol và kết nối với Houdini plugin
+## 🚀 Installation
 
-## Cài đặt
+### Prerequisites
 
-### Yêu cầu
+- Python 3.10 or newer
+- SideFX Houdini (19.5 or newer recommended)
+- Flask (for REST API)
 
-- Houdini 19.5 hoặc mới hơn
-- Python 3.10 hoặc mới hơn
-- uv package manager: 
+### Installation Methods
 
-**Nếu bạn đang dùng Mac, cài đặt uv bằng lệnh**
+#### From Source
+
 ```bash
-brew install uv
+git clone https://github.com/yourname/houdini-mcp.git
+cd houdini-mcp
+pip install .
 ```
-**Trên Windows**
+
+#### Using pip
+
 ```bash
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex" 
+pip install houdini-mcp
 ```
-sau đó
+
+#### Development Installation
+
 ```bash
-set Path=C:\Users\<username>\.local\bin;%Path%
+git clone https://github.com/yourname/houdini-mcp.git
+cd houdini-mcp
+pip install -e ".[dev]"
 ```
 
-**⚠️ Không tiếp tục nếu chưa cài đặt UV**
+## ⚙️ Usage
 
-### Cài đặt plugin cho Houdini
+### Starting the Server from Command Line
 
-1. Tải file `houdini_plugin.py`
-2. Copy file này vào thư mục scripts của Houdini:
-   - Windows: `C:\Users\<username>\Documents\houdini<version>\scripts\`
-   - Mac: `/Users/<username>/Library/Preferences/houdini/<version>/scripts/`
-   - Linux: `/home/<username>/houdini<version>/scripts/`
-3. Mở Houdini, nhấn Alt+P để mở Python Shell
-4. Chạy các lệnh sau:
-   ```python
-   import houdini_plugin
-   houdini_plugin.show_dialog()
-   ```
+The MCP server can be started directly from the command line:
 
-### Tích hợp với Claude Desktop
+```bash
+python -m houdini_mcp server --host localhost --port 8095 --log-to-file
+```
 
-Vào Claude > Settings > Developer > Edit Config > claude_desktop_config.json và thêm đoạn sau:
+### Starting the Server from Houdini
 
-```json
-{
-    "mcpServers": {
-        "houdini": {
-            "command": "uvx",
-            "args": [
-                "houdini-mcp"
-            ]
+Open the Python Shell in Houdini (Alt+P) and run:
+
+```python
+import houdini_plugin
+houdini_plugin.show_dialog()
+```
+
+This will display a connection dialog where you can start the socket server.
+
+### Starting the REST API Proxy
+
+To start the REST API proxy that converts HTTP requests to socket commands:
+
+```bash
+python -m houdini_mcp rest --socket-port 8095 --api-port 5000 --log-to-file
+```
+
+### Command Line Options
+
+The main script supports various command line options:
+
+```bash
+python -m houdini_mcp --help
+```
+
+## 🧠 Available Commands
+
+The MCP interface supports the following commands:
+
+- **list_available_commands**: List all available commands
+- **create_node**: Create a new node in Houdini
+- **connect_nodes**: Connect two nodes together
+- **set_param**: Set a parameter value on a node
+- **get_scene_info**: Get information about the current Houdini scene
+- **get_object_info**: Get detailed information about a specific node
+- **create_fluid_sim**: Create a FLIP fluid simulation
+- **create_pyro_sim**: Create a Pyro simulation (fire/smoke)
+- **run_simulation**: Run a simulation for specified frames
+- **execute_houdini_code**: Execute arbitrary Python code in Houdini
+
+For a complete reference of all commands and their parameters, see the `command_schema.json` file or access the `/mcp/schema` endpoint of the REST API.
+
+## 📡 API Examples
+
+### REST API Examples
+
+```bash
+# Check if the server is running
+curl http://localhost:5000/mcp/status
+
+# Get the full command schema
+curl http://localhost:5000/mcp/schema
+
+# Create a new geometry node
+curl -X POST http://localhost:5000/mcp/command \
+  -H "Content-Type: application/json" \
+  -d '{"type": "create_node", "params": {"parent_path": "/obj", "node_type": "geo", "node_name": "my_geometry"}}'
+
+# Create a fluid simulation
+curl -X POST http://localhost:5000/mcp/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "create_fluid_sim",
+    "params": {
+      "container_size": [10, 10, 10],
+      "source_type": "box",
+      "source_position": [0, 5, 0],
+      "collision_objects": [
+        {
+          "type": "sphere",
+          "position": [0, 0, 0],
+          "size": 2.0
         }
+      ]
+    }
+  }'
+```
+
+### Socket API Example
+
+```python
+import socket
+import json
+
+# Connect to the server
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect(("localhost", 8095))
+
+# Create a command
+command = {
+    "type": "create_node",
+    "params": {
+        "parent_path": "/obj",
+        "node_type": "geo",
+        "node_name": "my_geometry"
     }
 }
+
+# Send the command
+client.sendall(json.dumps(command).encode('utf-8'))
+
+# Receive the response
+response = b''
+while True:
+    chunk = client.recv(4096)
+    if not chunk:
+        break
+    response += chunk
+
+# Parse the response
+result = json.loads(response.decode('utf-8'))
+print(result)
+
+# Close the connection
+client.close()
 ```
 
-### Tích hợp với Cursor
+## 🔐 Security Notes
 
-Vào Cursor Settings > MCP và dán lệnh sau:
+- The REST API only accepts connections from localhost (127.0.0.1) to prevent unauthorized access
+- The `execute_houdini_code` command should be used with caution as it allows arbitrary code execution
+- No authentication is currently implemented; use in a protected environment
+- The socket server binds to localhost by default, but can be configured to accept remote connections if needed (not recommended)
+
+## 💡 Development Notes
+
+### Project Structure
+
+```
+houdini-mcp/
+├── README.md                # This documentation
+├── pyproject.toml           # Python package configuration
+├── requirements.txt         # Dependencies
+├── requirements-dev.txt     # Development dependencies
+├── .python-version          # Python version specification
+├── main.py                  # CLI entry point
+├── houdini_plugin.py        # Houdini plugin interface
+├── server.py                # Socket server implementation
+├── commands.py              # Command execution logic
+├── simulations.py           # Simulation-specific commands
+├── rest_to_socket_proxy.py  # REST API proxy
+├── command_schema.json      # Command specification
+├── tests/                   # Unit tests
+└── assets/                  # Additional resources
+```
+
+### Adding a New Command
+
+To add a new command to the MCP system:
+
+1. Add the command handler to the `CommandExecutor` class in `commands.py`
+2. Update the command handler dictionary in the `__init__` method
+3. Add the command schema to `command_schema.json`
+4. (Optional) Add unit tests for the new command
+
+Example of a new command implementation:
+
+```python
+def my_new_command(self, params):
+    """
+    Description of what the command does
+    
+    Args:
+        params: Dictionary with command parameters
+        
+    Returns:
+        Dictionary with command results
+    """
+    try:
+        # Implementation here
+        return {
+            "status": "success",
+            "message": "Command executed successfully",
+            "result": "Some result data"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error executing command: {str(e)}"
+        }
+```
+
+### Running Tests
+
+The project includes a comprehensive test suite that can be run with pytest:
 
 ```bash
-uvx houdini-mcp
+# Run all tests
+pytest
+
+# Run tests with coverage report
+pytest --cov=.
+
+# Run specific test file
+pytest tests/test_rest_api.py
 ```
 
-Đối với người dùng Windows, vào Settings > MCP > Add Server, thêm server mới với cài đặt sau:
+## 👥 Credits / License
 
-```json
-{
-    "mcpServers": {
-        "houdini": {
-            "command": "cmd",
-            "args": [
-                "/c",
-                "uvx",
-                "houdini-mcp"
-            ]
-        }
-    }
-}
-```
+Developed by [Your Name]
 
-**⚠️ Chỉ chạy một instance của MCP server (hoặc trên Cursor hoặc Claude Desktop), không chạy cả hai**
+Inspired by [Blender-MCP](https://github.com/gd3kr/BlenderGPT)
 
-## Sử dụng
-
-### Bắt đầu kết nối
-
-1. Trong Houdini, mở Python Shell (Alt+P)
-2. Chạy lệnh `import houdini_plugin` và `houdini_plugin.show_dialog()`
-3. Kết nối đến Claude
-4. Đảm bảo MCP server đang chạy
-
-### Sử dụng với Claude
-
-Khi đã cấu hình xong file config cho Claude, và plugin đang chạy trong Houdini, bạn sẽ thấy biểu tượng công cụ cho HoudiniMCP.
-
-#### Khả năng
-
-- Lấy thông tin về cảnh và đối tượng
-- Tạo, xóa và chỉnh sửa các đối tượng
-- Tạo mô phỏng nước và lửa
-- Thực thi mã Python bất kỳ trong Houdini
-
-### Ví dụ các lệnh
-
-Dưới đây là một số ví dụ về những gì bạn có thể yêu cầu Claude thực hiện:
-
-- "Tạo mô phỏng nước với nguồn hình hộp và một quả cầu va chạm"
-- "Tạo mô phỏng lửa với nguồn hình cầu, nhiệt độ 1.5, lượng nhiên liệu 1.0 và lực gió theo hướng X"
-- "Tạo một đối tượng hình cầu và đặt nó phía trên hình hộp"
-- "Hướng camera vào cảnh"
-
-## Xử lý sự cố
-
-- **Vấn đề kết nối**: Đảm bảo Houdini plugin server đang chạy và MCP server được cấu hình trên Claude
-- **Lỗi timeout**: Thử đơn giản hóa yêu cầu hoặc chia nhỏ thành các bước
-- **Kết nối không ổn định**: Khởi động lại cả Claude và Houdini server
-
-## Chi tiết kỹ thuật
-
-### Giao thức truyền thông
-
-Hệ thống sử dụng giao thức dựa trên JSON qua TCP sockets:
-
-- **Lệnh** được gửi dưới dạng đối tượng JSON với `type` và `params` tùy chọn
-- **Phản hồi** là đối tượng JSON với `status` và `result` hoặc `message`
-
-## Giới hạn và cân nhắc bảo mật
-
-- Công cụ `execute_houdini_code` cho phép chạy mã Python tùy ý trong Houdini, điều này rất mạnh mẽ nhưng có thể nguy hiểm. Sử dụng cẩn thận trong môi trường sản xuất. LUÔN lưu công việc của bạn trước khi sử dụng.
-- Các thao tác phức tạp có thể cần được chia thành các bước nhỏ hơn
-
-## Đóng góp
-
-Đóng góp luôn được chào đón! Vui lòng tạo Pull Request.
-
-## Tuyên bố từ chối trách nhiệm
-
-Đây là tích hợp của bên thứ ba và không phải do SideFX (công ty phát triển Houdini) tạo ra.
+Licensed under the MIT License - see the LICENSE file for details.
