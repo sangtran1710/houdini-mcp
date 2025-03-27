@@ -6,7 +6,7 @@ import traceback
 import os
 import tempfile
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union, Callable
 import math
 import importlib
 
@@ -40,7 +40,7 @@ hdefereval = None
 
 # Create a dummy Houdini module for when running outside Houdini
 class DummyHou:
-    def __getattr__(self, name):
+    def __getattr__(self, name: str) -> Callable:
         return lambda *args, **kwargs: None
 
 def init_houdini_modules() -> bool:
@@ -101,9 +101,9 @@ def show_dialog() -> None:
         # We have a UI, show the dialog
         hdefereval.executeDeferred(_create_and_show_dialog)
         
-                            except Exception as e:
+    except Exception as e:
         logger.error(f"Error showing dialog: {str(e)}")
-                                traceback.print_exc()
+        traceback.print_exc()
 
 def _create_and_show_dialog() -> None:
     """Create and show the connection dialog"""
@@ -182,7 +182,7 @@ def _stop_server_from_dialog(dialog: Any, kwargs: Dict[str, Any]) -> None:
         traceback.print_exc()
         dialog.setValue("status", f"Server Status: Error - {str(e)}")
 
-def start_server(host="localhost", port=8095):
+def start_server(host: str = "localhost", port: int = 8095) -> bool:
     """
     Start the MCP server.
     
@@ -224,7 +224,7 @@ def start_server(host="localhost", port=8095):
         traceback.print_exc()
         return False
 
-def stop_server():
+def stop_server() -> bool:
     """
     Stop the MCP server.
     
@@ -251,9 +251,9 @@ def stop_server():
 if CommandExecutor is not None:
     try:
         command_executor = CommandExecutor()
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Could not initialize CommandExecutor: {str(e)}")
-            traceback.print_exc()
+        traceback.print_exc()
 
 # When imported, automatically show the dialog if in UI mode
 if __name__ != "__main__":
